@@ -47,7 +47,7 @@
 /obj/item/reagent_containers/food/snacks/attack_self(mob/user as mob)
 	return
 
-/obj/item/reagant_containers/food/snacks/attack_alien(mob/living/carbon/xenomorph/X, damage_amount = X.xeno_caste.melee_damage, damage_type = BRUTE, damage_flag = "", effects = TRUE, armor_penetration = 0, isrightclick = FALSE)
+/obj/item/reagant_containers/food/snacks/attack_alien(mob/living/carbon/xenomorph/X, damage_amount = X.xeno_caste.melee_damage, damage_type = BRUTE, damage_flag = "", effects = TRUE, armor_penetration = X.xeno_caste.melee_ap, isrightclick = FALSE)
 	if(!CONFIG_GET(flag/fun_allowed))
 		return FALSE
 	attack_hand(X)
@@ -93,7 +93,7 @@
 				balloon_alert_to_viewers("tries to feed [M] but can't")
 				return FALSE
 
-			if(!do_mob(user, M, 30, BUSY_ICON_FRIENDLY))
+			if(!do_after(user, 3 SECONDS, NONE, M, BUSY_ICON_FRIENDLY))
 				return
 
 			var/rgt_list_text = get_reagent_list_text()
@@ -1498,7 +1498,8 @@
 		/datum/reagent/medicine/tramadol = 10,
 		/datum/reagent/medicine/bicaridine = 10,
 		/datum/reagent/medicine/kelotane = 10,
-		/datum/reagent/medicine/tricordrazine = 10,)
+		/datum/reagent/medicine/tricordrazine = 10,
+	)
 	tastes = list("delicious processed berries" = 1)
 	bitesize = 9
 

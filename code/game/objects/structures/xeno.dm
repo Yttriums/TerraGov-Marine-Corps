@@ -63,7 +63,7 @@
 	desc = "Looks like some kind of slimy growth."
 	icon_state = "Resin1"
 	max_integrity = 200
-	resistance_flags = XENO_DAMAGEABLE
+	resistance_flags = XENO_DAMAGEABLE|UNACIDABLE
 
 
 /obj/alien/resin/attack_hand(mob/living/user)
@@ -116,12 +116,12 @@
 
 	victim.next_move_slowdown += slow_amt
 
-/obj/alien/resin/sticky/attack_alien(mob/living/carbon/xenomorph/X, damage_amount = X.xeno_caste.melee_damage, damage_type = BRUTE, damage_flag = "", effects = TRUE, armor_penetration = 0, isrightclick = FALSE)
+/obj/alien/resin/sticky/attack_alien(mob/living/carbon/xenomorph/X, damage_amount = X.xeno_caste.melee_damage, damage_type = BRUTE, damage_flag = "", effects = TRUE, armor_penetration = X.xeno_caste.melee_ap, isrightclick = FALSE)
 	if(X.status_flags & INCORPOREAL)
 		return FALSE
 
 	if(X.a_intent == INTENT_HARM) //Clear it out on hit; no need to double tap.
-		if(CHECK_BITFIELD(SSticker.mode.flags_round_type, MODE_ALLOW_XENO_QUICKBUILD) && SSresinshaping.active && refundable)
+		if(CHECK_BITFIELD(SSticker.mode?.flags_round_type, MODE_ALLOW_XENO_QUICKBUILD) && SSresinshaping.active && refundable)
 			SSresinshaping.quickbuild_points_by_hive[X.hivenumber]++
 		X.do_attack_animation(src, ATTACK_EFFECT_CLAW) //SFX
 		playsound(src, "alien_resin_break", 25) //SFX
@@ -190,21 +190,21 @@
 	return TRUE
 
 //clicking on resin doors attacks them, or opens them without harm intent
-/obj/structure/mineral_door/resin/attack_alien(mob/living/carbon/xenomorph/X, damage_amount = X.xeno_caste.melee_damage, damage_type = BRUTE, damage_flag = "", effects = TRUE, armor_penetration = 0, isrightclick = FALSE)
+/obj/structure/mineral_door/resin/attack_alien(mob/living/carbon/xenomorph/X, damage_amount = X.xeno_caste.melee_damage, damage_type = BRUTE, damage_flag = "", effects = TRUE, armor_penetration = X.xeno_caste.melee_ap, isrightclick = FALSE)
 	var/turf/cur_loc = X.loc
 	if(!istype(cur_loc))
 		return FALSE //Some basic logic here
 	if(X.a_intent != INTENT_HARM)
 		try_toggle_state(X)
 		return TRUE
-	if(CHECK_BITFIELD(SSticker.mode.flags_round_type, MODE_ALLOW_XENO_QUICKBUILD) && SSresinshaping.active)
+	if(CHECK_BITFIELD(SSticker.mode?.flags_round_type, MODE_ALLOW_XENO_QUICKBUILD) && SSresinshaping.active)
 		SSresinshaping.quickbuild_points_by_hive[X.hivenumber]++
 		qdel(src)
 		return TRUE
 
 	src.balloon_alert(X, "Destroying...")
 	playsound(src, "alien_resin_break", 25)
-	if(do_after(X, 1 SECONDS, FALSE, src, BUSY_ICON_HOSTILE))
+	if(do_after(X, 1 SECONDS, IGNORE_HELD_ITEM, src, BUSY_ICON_HOSTILE))
 		src.balloon_alert(X, "Destroyed")
 		qdel(src)
 
@@ -286,7 +286,7 @@
 	///Holder to ensure only one user per resin jelly.
 	var/current_user
 
-/obj/item/resin_jelly/attack_alien(mob/living/carbon/xenomorph/X, damage_amount = X.xeno_caste.melee_damage, damage_type = BRUTE, damage_flag = "", effects = TRUE, armor_penetration = 0, isrightclick = FALSE)
+/obj/item/resin_jelly/attack_alien(mob/living/carbon/xenomorph/X, damage_amount = X.xeno_caste.melee_damage, damage_type = BRUTE, damage_flag = "", effects = TRUE, armor_penetration = X.xeno_caste.melee_ap, isrightclick = FALSE)
 	if(X.status_flags & INCORPOREAL)
 		return FALSE
 
@@ -296,7 +296,7 @@
 		return
 	current_user = X
 	X.balloon_alert(X, "Applying...")
-	if(!do_after(X, RESIN_SELF_TIME, TRUE, X, BUSY_ICON_MEDICAL))
+	if(!do_after(X, RESIN_SELF_TIME, NONE, X, BUSY_ICON_MEDICAL))
 		current_user = null
 		return
 	activate_jelly(X)
@@ -309,7 +309,7 @@
 		return
 	current_user = user
 	user.balloon_alert(user, "Applying...")
-	if(!do_after(user, RESIN_SELF_TIME, TRUE, user, BUSY_ICON_MEDICAL))
+	if(!do_after(user, RESIN_SELF_TIME, NONE, user, BUSY_ICON_MEDICAL))
 		current_user = null
 		return
 	activate_jelly(user)
@@ -328,7 +328,7 @@
 	M.balloon_alert(user, "Applying...")
 	if(M != user)
 		user.balloon_alert(M, "Applying jelly...") //Notify recipient to not move.
-	if(!do_after(user, (M == user ? RESIN_SELF_TIME : RESIN_OTHER_TIME), TRUE, M, BUSY_ICON_MEDICAL))
+	if(!do_after(user, (M == user ? RESIN_SELF_TIME : RESIN_OTHER_TIME), NONE, M, BUSY_ICON_MEDICAL))
 		current_user = null
 		return FALSE
 	activate_jelly(M)

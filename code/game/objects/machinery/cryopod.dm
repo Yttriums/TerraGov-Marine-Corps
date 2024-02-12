@@ -129,6 +129,7 @@
 		set_light(initial(light_range))
 
 /obj/machinery/cryopod/update_icon_state()
+	. = ..()
 	if(occupant)
 		icon_state = "[initial(icon_state)]_occupied"
 	else
@@ -190,7 +191,7 @@
 	return ..()
 
 /obj/item/proc/store_in_cryo()
-	if(is_type_in_typecache(src, GLOB.do_not_preserve) || flags_item & (ITEM_ABSTRACT|NODROP|DELONDROP))
+	if(is_type_in_typecache(src, GLOB.do_not_preserve) || HAS_TRAIT(src, TRAIT_NODROP) || (flags_item & (ITEM_ABSTRACT|DELONDROP)))
 		if(!QDELETED(src))
 			qdel(src)
 		return
@@ -287,7 +288,7 @@
 		span_notice("You start climbing into [src]."))
 
 	var/mob/initiator = helper ? helper : user
-	if(!do_after(initiator, 20, TRUE, user, BUSY_ICON_GENERIC))
+	if(!do_after(initiator, 20, NONE, user, BUSY_ICON_GENERIC))
 		return FALSE
 
 	if(!QDELETED(occupant))

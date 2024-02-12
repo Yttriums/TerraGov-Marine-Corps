@@ -21,12 +21,16 @@
 	var/datum/effect_system/smoke_spread/smoketype = /datum/effect_system/smoke_spread/bad
 	/// radius this smoke will encompass
 	var/smokeradius = 1
+	///Current/last user of the c4
+	var/mob/living/last_user
 
 /obj/item/explosive/plastique/Destroy()
 	plant_target = null
+	last_user = null
 	return ..()
 
 /obj/item/explosive/plastique/update_icon_state()
+	. = ..()
 	icon_state = "[initial(icon_state)][plant_target ? "_set" : ""]"
 	if(armed)
 		icon_state = "[icon_state][alarm_sounded ? "_armed" : "_on"]"
@@ -57,7 +61,7 @@
 	user.visible_message(span_warning("[user] is trying to plant [name] on [target]!"),
 	span_warning("You are trying to plant [name] on [target]!"))
 
-	if(do_after(user, 2 SECONDS, TRUE, target, BUSY_ICON_HOSTILE))
+	if(do_after(user, 2 SECONDS, NONE, target, BUSY_ICON_HOSTILE))
 		if((locate(/obj/item/detpack) in target) || (locate(/obj/item/explosive/plastique) in target)) //This needs a refactor.
 			to_chat(user, "[span_warning("There is already a device attached to [target]")].")
 			return
@@ -93,10 +97,9 @@
 			forceMove(location)
 		armed = TRUE
 		timer = target.plastique_time_mod(timer)
+		last_user = user
 
-		log_combat(user, target, "attached [src] to")
-		message_admins("[ADMIN_TPMONTY(user)] planted [src] on [target] at [ADMIN_VERBOSEJMP(target.loc)] with [timer] second fuse.")
-		log_explosion("[key_name(user)] planted [src] at [AREACOORD(user.loc)] with [timer] second fuse.")
+		log_bomber(user, "planted", src, "on [target] with a [timer] second fuse", message_admins = TRUE)
 
 		user.visible_message(span_warning("[user] plants [name] on [target]!"),
 		span_warning("You plant [name] on [target]! Timer counting down from [timer]."))
@@ -113,13 +116,7 @@
 
 /obj/item/explosive/plastique/attack_hand(mob/living/user)
 	if(armed)
-		to_chat(user, "<font color='warning'>Disarm [src] first to remove it!</font>")
-		return
-	return ..()
-
-/obj/item/explosive/plastique/attackby(obj/item/I, mob/user, params)
-	if(ismultitool(I) && armed)
-		if(!do_after(user, 2 SECONDS, TRUE, plant_target, BUSY_ICON_HOSTILE))
+		if(!do_after(user, 2 SECONDS, NONE, plant_target, BUSY_ICON_HOSTILE))
 			return
 
 		if(ismovableatom(plant_target))
@@ -143,7 +140,9 @@
 		armed = FALSE
 		alarm_sounded = FALSE
 		plant_target = null
+		last_user = null
 		update_icon()
+	return ..()
 
 ///Handles the actual explosion effects
 /obj/item/explosive/plastique/proc/detonate()
@@ -157,7 +156,7 @@
 	var/datum/effect_system/smoke_spread/smoke = new smoketype()
 	smoke.set_up(smokeradius, plant_target, 2)
 	smoke.start()
-	plant_target.plastique_act()
+	plant_target.plastique_act(last_user)
 	qdel(src)
 
 ///Triggers a warning beep prior to the actual detonation, while also setting the actual detonation timer
@@ -169,7 +168,7 @@
 		update_icon()
 
 ///Handles the effect of c4 on the atom - overridden as needed
-/atom/proc/plastique_act()
+/atom/proc/plastique_act(mob/living/plastique_user)
 	ex_act(EXPLODE_DEVASTATE)
 
 /obj/item/explosive/plastique/genghis_charge

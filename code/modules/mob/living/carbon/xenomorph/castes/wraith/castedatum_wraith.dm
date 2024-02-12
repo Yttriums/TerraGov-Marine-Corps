@@ -25,11 +25,6 @@
 	evolution_threshold = 225
 	upgrade_threshold = TIER_TWO_THRESHOLD
 
-	evolves_to = list(
-		/mob/living/carbon/xenomorph/defiler,
-		/mob/living/carbon/xenomorph/ravager,
-		/mob/living/carbon/xenomorph/warlock,
-	)
 	deevolves_to = /mob/living/carbon/xenomorph/runner
 
 	// *** Flags *** //
@@ -45,14 +40,14 @@
 
 	// *** Abilities *** //
 	actions = list(
-		/datum/action/xeno_action/xeno_resting,
-		/datum/action/xeno_action/watch_xeno,
-		/datum/action/xeno_action/activable/psydrain,
-		/datum/action/xeno_action/activable/blink,
-		/datum/action/xeno_action/activable/banish,
-		/datum/action/xeno_action/recall,
-		/datum/action/xeno_action/activable/rewind,
-		/datum/action/xeno_action/portal,
+		/datum/action/ability/xeno_action/xeno_resting,
+		/datum/action/ability/xeno_action/watch_xeno,
+		/datum/action/ability/activable/xeno/psydrain,
+		/datum/action/ability/activable/xeno/blink,
+		/datum/action/ability/activable/xeno/banish,
+		/datum/action/ability/xeno_action/recall,
+		/datum/action/ability/activable/xeno/rewind,
+		/datum/action/ability/xeno_action/portal,
 	)
 
 /datum/xeno_caste/wraith/normal
@@ -65,14 +60,14 @@
 	upgrade = XENO_UPGRADE_PRIMO
 
 	actions = list(
-		/datum/action/xeno_action/xeno_resting,
-		/datum/action/xeno_action/watch_xeno,
-		/datum/action/xeno_action/activable/psydrain,
-		/datum/action/xeno_action/activable/blink,
-		/datum/action/xeno_action/activable/banish,
-		/datum/action/xeno_action/recall,
-		/datum/action/xeno_action/portal,
-		/datum/action/xeno_action/activable/rewind,
-		/datum/action/xeno_action/timestop,
+		/datum/action/ability/xeno_action/xeno_resting,
+		/datum/action/ability/xeno_action/watch_xeno,
+		/datum/action/ability/activable/xeno/psydrain,
+		/datum/action/ability/activable/xeno/blink,
+		/datum/action/ability/activable/xeno/banish,
+		/datum/action/ability/xeno_action/recall,
+		/datum/action/ability/xeno_action/portal,
+		/datum/action/ability/activable/xeno/rewind,
+		/datum/action/ability/xeno_action/timestop,
 	)
 

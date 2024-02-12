@@ -119,7 +119,7 @@
 	if(r_auth && g_auth && b_auth)
 		has_auth = TRUE
 
-/obj/machinery/nuclearbomb/attack_alien(mob/living/carbon/xenomorph/X, damage_amount = X.xeno_caste.melee_damage, damage_type = BRUTE, damage_flag = "", effects = TRUE, armor_penetration = 0, isrightclick = FALSE)
+/obj/machinery/nuclearbomb/attack_alien(mob/living/carbon/xenomorph/X, damage_amount = X.xeno_caste.melee_damage, damage_type = BRUTE, damage_flag = "", effects = TRUE, armor_penetration = X.xeno_caste.melee_ap, isrightclick = FALSE)
 	if(X.status_flags & INCORPOREAL)
 		return FALSE
 
@@ -129,7 +129,7 @@
 
 	X.visible_message("[X] begins to slash delicately at the nuke",
 	"You start slashing delicately at the nuke.")
-	if(!do_after(X, 5 SECONDS, TRUE, src, BUSY_ICON_DANGER, BUSY_ICON_HOSTILE))
+	if(!do_after(X, 5 SECONDS, NONE, src, BUSY_ICON_DANGER, BUSY_ICON_HOSTILE))
 		return
 	X.visible_message("[X] disabled the nuke",
 	"You disabled the nuke.")
@@ -161,7 +161,7 @@
 	if(!deployable)
 		return
 
-	if(!do_after(user, 3 SECONDS, TRUE, src, BUSY_ICON_BUILD))
+	if(!do_after(user, 3 SECONDS, NONE, src, BUSY_ICON_BUILD))
 		return
 
 	if(removal_stage < NUKE_STAGE_BOLTS_REMOVED)

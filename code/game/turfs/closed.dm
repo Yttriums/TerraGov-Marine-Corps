@@ -37,7 +37,7 @@
 	for(var/direction in GLOB.cardinals)
 		var/turf/turf_to_check = get_step(src, direction)
 		if(!isnull(turf_to_check) && !turf_to_check.density)
-			var/image/rock_side = image(icon, "[icon_state]_side", dir = turn(direction, 180))
+			var/image/rock_side = image(icon, "[icon_state]_side", dir = REVERSE_DIR(direction))
 			switch(direction)
 				if(NORTH)
 					rock_side.pixel_y += world.icon_size
@@ -113,7 +113,11 @@
 	base_icon_state = "darkfrostwall"
 	resistance_flags = PLASMACUTTER_IMMUNE|UNACIDABLE
 
+/turf/closed/mineral/smooth/darkfrostwall/cuttable
+	resistance_flags = UNACIDABLE
+
 /turf/closed/mineral/smooth/darkfrostwall/indestructible
+	name = "tough rock"
 	resistance_flags = RESIST_ALL
 	icon_state = "wall-invincible"
 
@@ -224,7 +228,7 @@
 	for(var/direction in GLOB.cardinals)
 		var/turf/turf_to_check = get_step(src, direction)
 		if(istype(turf_to_check, /turf/open))
-			var/image/rock_side = image(icon, "[icon_state]_side", dir = turn(direction, 180))
+			var/image/rock_side = image(icon, "[icon_state]_side", dir = REVERSE_DIR(direction))
 			switch(direction)
 				if(NORTH)
 					rock_side.pixel_y += world.icon_size
@@ -302,7 +306,7 @@
 			return
 		else if(!P.start_cut(user, name, src))
 			return
-		else if(!do_after(user, PLASMACUTTER_CUT_DELAY, TRUE, src, BUSY_ICON_FRIENDLY))
+		else if(!do_after(user, PLASMACUTTER_CUT_DELAY, NONE, src, BUSY_ICON_FRIENDLY))
 			return
 		else
 			P.cut_apart(user, name, src) //purely a cosmetic effect

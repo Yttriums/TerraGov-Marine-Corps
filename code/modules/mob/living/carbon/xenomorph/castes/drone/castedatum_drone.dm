@@ -29,15 +29,6 @@
 	evolution_threshold = 100
 	upgrade_threshold = TIER_ONE_THRESHOLD
 
-	evolves_to = list(
-		/mob/living/carbon/xenomorph/shrike,
-		/mob/living/carbon/xenomorph/queen,
-		/mob/living/carbon/xenomorph/king,
-		/mob/living/carbon/xenomorph/carrier,
-		/mob/living/carbon/xenomorph/hivelord,
-		/mob/living/carbon/xenomorph/hivemind,
-	)
-
 	// *** Flags *** //
 	caste_flags = CASTE_EVOLUTION_ALLOWED|CASTE_IS_BUILDER
 	can_hold_eggs = CAN_HOLD_TWO_HANDS
@@ -55,22 +46,22 @@
 
 	// *** Abilities *** //
 	actions = list(
-		/datum/action/xeno_action/xeno_resting,
-		/datum/action/xeno_action/watch_xeno,
-		/datum/action/xeno_action/activable/psydrain,
-		/datum/action/xeno_action/activable/cocoon,
-		/datum/action/xeno_action/activable/plant_weeds,
-		/datum/action/xeno_action/activable/secrete_resin,
-		/datum/action/xeno_action/activable/essence_link,
-		/datum/action/xeno_action/activable/psychic_cure/acidic_salve,
-		/datum/action/xeno_action/activable/transfer_plasma/drone,
-		/datum/action/xeno_action/activable/corrosive_acid/drone,
-		/datum/action/xeno_action/create_jelly/slow,
-		/datum/action/xeno_action/pheromones,
-		/datum/action/xeno_action/pheromones/emit_recovery,
-		/datum/action/xeno_action/pheromones/emit_warding,
-		/datum/action/xeno_action/pheromones/emit_frenzy,
-		/datum/action/xeno_action/activable/recycle,
+		/datum/action/ability/xeno_action/xeno_resting,
+		/datum/action/ability/xeno_action/watch_xeno,
+		/datum/action/ability/activable/xeno/psydrain,
+		/datum/action/ability/activable/xeno/cocoon,
+		/datum/action/ability/activable/xeno/plant_weeds,
+		/datum/action/ability/activable/xeno/secrete_resin,
+		/datum/action/ability/activable/xeno/essence_link,
+		/datum/action/ability/activable/xeno/psychic_cure/acidic_salve,
+		/datum/action/ability/activable/xeno/transfer_plasma/drone,
+		/datum/action/ability/activable/xeno/corrosive_acid/drone,
+		/datum/action/ability/xeno_action/create_jelly/slow,
+		/datum/action/ability/xeno_action/pheromones,
+		/datum/action/ability/xeno_action/pheromones/emit_recovery,
+		/datum/action/ability/xeno_action/pheromones/emit_warding,
+		/datum/action/ability/xeno_action/pheromones/emit_frenzy,
+		/datum/action/ability/activable/xeno/recycle,
 	)
 
 /datum/xeno_caste/drone/normal
@@ -83,22 +74,22 @@
 	upgrade = XENO_UPGRADE_PRIMO
 
 	actions = list(
-		/datum/action/xeno_action/xeno_resting,
-		/datum/action/xeno_action/watch_xeno,
-		/datum/action/xeno_action/activable/psydrain,
-		/datum/action/xeno_action/activable/cocoon,
-		/datum/action/xeno_action/activable/plant_weeds,
-		/datum/action/xeno_action/activable/secrete_resin,
-		/datum/action/xeno_action/activable/essence_link,
-		/datum/action/xeno_action/activable/psychic_cure/acidic_salve,
-		/datum/action/xeno_action/activable/transfer_plasma/drone,
-		/datum/action/xeno_action/sow,
-		/datum/action/xeno_action/enhancement,
-		/datum/action/xeno_action/activable/corrosive_acid/drone,
-		/datum/action/xeno_action/create_jelly/slow,
-		/datum/action/xeno_action/pheromones,
-		/datum/action/xeno_action/pheromones/emit_recovery,
-		/datum/action/xeno_action/pheromones/emit_warding,
-		/datum/action/xeno_action/pheromones/emit_frenzy,
-		/datum/action/xeno_action/activable/recycle,
+		/datum/action/ability/xeno_action/xeno_resting,
+		/datum/action/ability/xeno_action/watch_xeno,
+		/datum/action/ability/activable/xeno/psydrain,
+		/datum/action/ability/activable/xeno/cocoon,
+		/datum/action/ability/activable/xeno/plant_weeds,
+		/datum/action/ability/activable/xeno/secrete_resin,
+		/datum/action/ability/activable/xeno/essence_link,
+		/datum/action/ability/activable/xeno/psychic_cure/acidic_salve,
+		/datum/action/ability/activable/xeno/transfer_plasma/drone,
+		/datum/action/ability/xeno_action/sow,
+		/datum/action/ability/xeno_action/enhancement,
+		/datum/action/ability/activable/xeno/corrosive_acid/drone,
+		/datum/action/ability/xeno_action/create_jelly/slow,
+		/datum/action/ability/xeno_action/pheromones,
+		/datum/action/ability/xeno_action/pheromones/emit_recovery,
+		/datum/action/ability/xeno_action/pheromones/emit_warding,
+		/datum/action/ability/xeno_action/pheromones/emit_frenzy,
+		/datum/action/ability/activable/xeno/recycle,
 	)

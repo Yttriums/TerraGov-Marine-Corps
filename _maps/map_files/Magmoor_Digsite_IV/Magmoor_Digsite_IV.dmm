@@ -2673,7 +2673,9 @@
 	},
 /area/magmoor/compound/southwest)
 "bOI" = (
-/obj/structure/nuke_disk_candidate,
+/obj/structure/nuke_disk_candidate{
+	set_associations = list("set2")
+	},
 /turf/open/floor/mainship/purple{
 	dir = 9
 	},
@@ -7285,7 +7287,9 @@
 /turf/closed/wall/r_wall,
 /area/magmoor/research/containment)
 "feR" = (
-/obj/structure/nuke_disk_candidate,
+/obj/structure/nuke_disk_candidate{
+	set_associations = list("set1", "set3")
+	},
 /turf/open/floor/carpet,
 /area/magmoor/command/office/main)
 "ffk" = (
@@ -8711,7 +8715,9 @@
 	},
 /area/magmoor/civilian/clean/shower)
 "ght" = (
-/obj/structure/nuke_disk_candidate,
+/obj/structure/nuke_disk_candidate{
+	set_associations = list("set2", "set3")
+	},
 /turf/open/floor/mainship/orange{
 	dir = 1
 	},
@@ -12687,7 +12693,7 @@
 /turf/open/floor/carpet,
 /area/magmoor/command/conference)
 "jmq" = (
-/obj/structure/bed/chair/wheelchair,
+/obj/vehicle/ridden/wheelchair,
 /turf/open/floor/mainship/sterile/side{
 	dir = 4
 	},
@@ -16027,7 +16033,9 @@
 /turf/open/floor/plating/ground/concrete,
 /area/magmoor/compound)
 "lGP" = (
-/obj/structure/nuke_disk_candidate,
+/obj/structure/nuke_disk_candidate{
+	set_associations = list("set1", "set3")
+	},
 /turf/open/floor/mainship/cargo,
 /area/magmoor/mining/storage)
 "lGS" = (
@@ -17107,16 +17115,6 @@
 	dir = 1
 	},
 /area/magmoor/civilian/arrival/east)
-"mAx" = (
-/obj/machinery/atmospherics/pipe/simple/supply/hidden/layer1{
-	dir = 4
-	},
-/obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{
-	dir = 4
-	},
-/obj/structure/cable,
-/turf/open/floor/wood,
-/area/magmoor/civilian/bar)
 "mAB" = (
 /obj/structure/bed/chair/sofa/corner{
 	dir = 1
@@ -17761,7 +17759,7 @@
 	},
 /area/magmoor/medical/treatment)
 "mXY" = (
-/obj/structure/bed/chair/wheelchair,
+/obj/vehicle/ridden/wheelchair,
 /turf/open/floor/mainship/sterile/side{
 	dir = 6
 	},
@@ -20391,7 +20389,9 @@
 /obj/machinery/light{
 	dir = 4
 	},
-/obj/structure/nuke_disk_candidate,
+/obj/structure/nuke_disk_candidate{
+	set_associations = list("set1", "set2")
+	},
 /turf/open/floor/tile/blue/whiteblue{
 	dir = 4
 	},
@@ -31742,7 +31742,7 @@
 /turf/open/liquid/lava/autosmoothing,
 /area/magmoor/compound/south)
 "xkp" = (
-/obj/structure/bed/chair/wheelchair,
+/obj/vehicle/ridden/wheelchair,
 /turf/open/floor/mainship/sterile/side,
 /area/magmoor/medical/lobby)
 "xku" = (
@@ -45377,10 +45377,10 @@ lCK
 lCK
 eYR
 azG
-xRq
+xOp
 dio
 oOH
-xOp
+xRq
 sfx
 xXN
 lCK
@@ -48407,7 +48407,7 @@ oAR
 ehQ
 mlP
 ehQ
-mAx
+cnO
 ehQ
 ehQ
 oMm
@@ -48640,7 +48640,7 @@ cAw
 ehQ
 fLe
 ehQ
-mAx
+cnO
 dIR
 ehQ
 wYc
@@ -48873,7 +48873,7 @@ vSf
 ehQ
 ehQ
 ehQ
-mAx
+cnO
 mlP
 ehQ
 mAI
@@ -49106,7 +49106,7 @@ aGz
 ehQ
 ehQ
 ehQ
-mAx
+cnO
 ehQ
 ehQ
 pNn
@@ -49339,7 +49339,7 @@ tjh
 mlP
 tct
 lfP
-mAx
+cnO
 ehQ
 ehQ
 cSj
@@ -49572,7 +49572,7 @@ lpK
 ehQ
 wEz
 bzj
-mAx
+cnO
 mlP
 ehQ
 nSi
@@ -50970,7 +50970,7 @@ qlY
 ehQ
 ehQ
 ehQ
-mAx
+cnO
 mlP
 hfz
 naO
@@ -51203,7 +51203,7 @@ lxq
 prR
 dIR
 ehQ
-mAx
+cnO
 ehQ
 hfz
 cZW
@@ -51436,7 +51436,7 @@ jdR
 mlP
 ehQ
 ehQ
-mAx
+cnO
 ehQ
 hfz
 jjQ
@@ -51669,7 +51669,7 @@ inQ
 rVY
 ehQ
 ehQ
-mAx
+cnO
 ehQ
 ehQ
 hfz

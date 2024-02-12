@@ -133,7 +133,7 @@ SUBSYSTEM_DEF(mapping)
 
 	z_list = SSmapping.z_list
 
-#define INIT_ANNOUNCE(X) to_chat(world, span_notice("[X]")); log_world(X)
+#define INIT_ANNOUNCE(X) to_chat(world, span_alert("<b>[X]</b>")); log_world(X)
 /datum/controller/subsystem/mapping/proc/LoadGroup(list/errorList, name, path, files, list/traits, list/default_traits, silent = FALSE)
 	. = list()
 	var/start_time = REALTIMEOFDAY
@@ -314,7 +314,6 @@ SUBSYSTEM_DEF(mapping)
 			if(reserve.Reserve(width, height, i))
 				return reserve
 		//If we didn't return at this point, theres a good chance we ran out of room on the exisiting reserved z levels, so lets try a new one
-		log_debug("Ran out of space in existing transit levels, adding a new one")
 		num_of_res_levels += 1
 		var/datum/space_level/newReserved = add_new_zlevel("Transit/Reserved [num_of_res_levels]", list(ZTRAIT_RESERVED = TRUE))
 		initialize_reserved_level(newReserved.z_value)
@@ -324,13 +323,11 @@ SUBSYSTEM_DEF(mapping)
 		CRASH("Despite adding a fresh reserved zlevel still failed to get a reservation")
 	else
 		if(!level_trait(z, ZTRAIT_RESERVED))
-			log_debug("Cannot block reserve on a non-ZTRAIT_RESERVED level")
 			qdel(reserve)
 			return
 		else
 			if(reserve.Reserve(width, height, z))
 				return reserve
-	log_debug("unknown reservation failure")
 	QDEL_NULL(reserve)
 
 //This is not for wiping reserved levels, use wipe_reservations() for that.

@@ -388,7 +388,6 @@
 	name = "SH-35 Scout"
 	desc = "For getting too close for comfort. Equipped with a SH-35 shotgun with buckshot and flechette rounds, a MP-19 sidearm, a good amount of grenades and light armor with a cutting edge 'svallin' shield module. Provides for excellent mobility and devestating close range firepower, but will falter against sustained firepower."
 
-	belt = /obj/item/storage/belt/shotgun
 	wear_suit = /obj/item/clothing/suit/modular/xenonauten/light/shield
 	suit_store = /obj/item/weapon/gun/shotgun/pump/t35/standard
 	belt = /obj/item/storage/belt/shotgun/mixed
@@ -486,10 +485,10 @@
 
 /datum/outfit/quick/tgmc/marine/machete
 	name = "Assault Marine"
-	desc = "This doesn't look standard issue... Equipped with a SMG-25 submachine gun, machete and jetpack, along with light armor upgraded with a 'svallin' shield module. It's not clear why this is here, nevertheless it has excellent mobility, and would likely be devastating against anyone you manage to actually reach."
+	desc = "This doesn't look standard issue... Equipped with a SMG-25 submachine gun, machete and heavy lift jetpack, along with light armor upgraded with a 'svallin' shield module. It's not clear why this is here, nevertheless it has excellent mobility, and would likely be devastating against anyone you manage to actually reach."
 
 	wear_suit = /obj/item/clothing/suit/modular/xenonauten/light/shield
-	back = /obj/item/jetpack_marine
+	back = /obj/item/jetpack_marine/heavy
 	belt = /obj/item/storage/holster/blade/machete/full
 	suit_store = /obj/item/weapon/gun/smg/m25/magharness
 
@@ -759,10 +758,6 @@
 	H.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/tx15_flechette, SLOT_IN_R_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/tx15_flechette, SLOT_IN_R_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/tx15_slug, SLOT_IN_R_POUCH)
-
-	H.equip_to_slot_or_del(new /obj/item/cell/lasgun/lasrifle, SLOT_IN_R_POUCH)
-	H.equip_to_slot_or_del(new /obj/item/cell/lasgun/lasrifle, SLOT_IN_R_POUCH)
-	H.equip_to_slot_or_del(new /obj/item/cell/lasgun/lasrifle, SLOT_IN_R_POUCH)
 
 /datum/outfit/quick/tgmc/corpsman/laser_medic
 	name = "Laser Rifle Corpsman"

@@ -1,5 +1,5 @@
 /mob/living/carbon/human/Initialize(mapload)
-	add_verb(src, /mob/living/proc/lay_down)
+	add_verb(src, /mob/living/proc/toggle_resting)
 	b_type = pick(7;"O-", 38;"O+", 6;"A-", 34;"A+", 2;"B-", 9;"B+", 1;"AB-", 3;"AB+")
 	blood_type = b_type
 
@@ -11,7 +11,6 @@
 	GLOB.human_mob_list += src
 	GLOB.alive_human_list += src
 	LAZYADD(GLOB.humans_by_zlevel["[z]"], src)
-	RegisterSignal(src, COMSIG_MOVABLE_Z_CHANGED, PROC_REF(human_z_changed))
 
 	var/datum/action/skill/toggle_orders/toggle_orders_action = new
 	toggle_orders_action.give_action(src)
@@ -39,11 +38,6 @@
 
 	randomize_appearance()
 
-	RegisterSignal(src, COMSIG_ATOM_ACIDSPRAY_ACT, PROC_REF(acid_spray_entered))
-	RegisterSignal(src, COMSIG_KB_QUICKEQUIP, PROC_REF(async_do_quick_equip))
-	RegisterSignal(src, COMSIG_KB_UNIQUEACTION, PROC_REF(do_unique_action))
-	RegisterSignal(src, COMSIG_GRAB_SELF_ATTACK, PROC_REF(fireman_carry_grabbed)) // Fireman carry
-	RegisterSignal(src, COMSIG_KB_GIVE, PROC_REF(give_signal_handler))
 	AddComponent(/datum/component/bump_attack, FALSE, FALSE)
 	AddElement(/datum/element/footstep, isrobot(src) ? FOOTSTEP_MOB_SHOE : FOOTSTEP_MOB_HUMAN, 1)
 	AddElement(/datum/element/ridable, /datum/component/riding/creature/human)
@@ -56,12 +50,28 @@
 	LAZYREMOVE(GLOB.humans_by_zlevel["[old_z]"], src)
 	LAZYADD(GLOB.humans_by_zlevel["[new_z]"], src)
 
+/mob/living/carbon/human/vv_edit_var(var_name, var_value)
+	return ..()
+
 /mob/living/carbon/human/vv_get_dropdown()
 	. = ..()
-	. += "---"
-	.["Drop Everything"] = "?_src_=vars;[HrefToken()];dropeverything=[REF(src)]"
-	.["Copy Outfit"] = "?_src_=vars;[HrefToken()];copyoutfit=[REF(src)]"
+	VV_DROPDOWN_OPTION("", "---------")
+	VV_DROPDOWN_OPTION(VV_HK_SET_SPECIES, "Set Species")
 
+/mob/living/carbon/human/vv_do_topic(list/href_list)
+	. = ..()
+
+	if(!.)
+		return
+
+	if(href_list[VV_HK_SET_SPECIES])
+		if(!check_rights(R_SPAWN))
+			return
+		var/result = input(usr, "Please choose a new species","Species") as null|anything in GLOB.all_species
+		if(result)
+			var/newtype = GLOB.all_species[result]
+			admin_ticket_log("[key_name_admin(usr)] has modified the bodyparts of [src] to [result]")
+			set_species(newtype)
 
 /mob/living/carbon/human/prepare_huds()
 	..()
@@ -77,7 +87,14 @@
 	GLOB.huds[DATA_HUD_BASIC].add_hud_to(src)
 	GLOB.huds[DATA_HUD_XENO_HEART].add_to_hud(src)
 
-
+/mob/living/carbon/human/register_init_signals()
+	. = ..()
+	RegisterSignal(src, COMSIG_MOVABLE_Z_CHANGED, PROC_REF(human_z_changed))
+	RegisterSignal(src, COMSIG_ATOM_ACIDSPRAY_ACT, PROC_REF(acid_spray_entered))
+	RegisterSignal(src, COMSIG_KB_QUICKEQUIP, PROC_REF(async_do_quick_equip))
+	RegisterSignal(src, COMSIG_KB_UNIQUEACTION, PROC_REF(do_unique_action))
+	RegisterSignal(src, COMSIG_GRAB_SELF_ATTACK, PROC_REF(fireman_carry_grabbed)) // Fireman carry
+	RegisterSignal(src, COMSIG_KB_GIVE, PROC_REF(give_signal_handler))
 
 /mob/living/carbon/human/Destroy()
 	assigned_squad?.remove_from_squad(src)
@@ -113,6 +130,10 @@
 		. += "You are affected by a HOLD order."
 	if(marksman_aura)
 		. += "You are affected by a FOCUS order."
+
+/mob/living/carbon/human/set_skills(datum/skills/new_skillset)
+	. = ..()
+	update_stam_skill_mod(skills)
 
 /mob/living/carbon/human/ex_act(severity)
 	if(status_flags & GODMODE)
@@ -280,7 +301,6 @@
 	var/siemens_coeff = base_siemens_coeff * get_siemens_coefficient_organ(affected_organ)
 
 	return ..(shock_damage, source, siemens_coeff, def_zone)
-
 
 /mob/living/carbon/human/Topic(href, href_list)
 	. = ..()
@@ -569,7 +589,7 @@
 				if(!(comment_to_add) || usr.stat || usr.restrained() || !(hasHUD(usr,"medical")))
 					return
 				var/counter = 1
-				while(medical_record.fields[text("com_[]", counter)])
+				while(medical_record.fields["com_[counter]"])
 					counter++
 				if(istype(usr, /mob/living/carbon/human))
 					var/mob/living/carbon/human/U = usr
@@ -644,7 +664,7 @@
 	visible_message(span_notice("[src] starts lifting [target] onto [p_their()] back..."),
 	span_notice("You start to lift [target] onto your back..."))
 	var/delay = 5 SECONDS - LERP(0 SECONDS, 4 SECONDS, skills.getPercent(SKILL_MEDICAL, SKILL_MEDICAL_MASTER))
-	if(!do_mob(src, target, delay, target_display = BUSY_ICON_HOSTILE))
+	if(!do_after(src, delay, NONE, target, target_display = BUSY_ICON_HOSTILE))
 		visible_message(span_warning("[src] fails to fireman carry [target]!"))
 		return
 	//Second check to make sure they're still valid to be carried
@@ -745,7 +765,7 @@
 
 	to_chat(usr, "You must[self ? "" : " both"] remain still until counting is finished.")
 
-	if(!do_mob(usr, src, 6 SECONDS))
+	if(!do_after(usr, 6 SECONDS, NONE, src))
 		to_chat(usr, span_warning("You failed to check the pulse. Try again."))
 		return
 
@@ -1110,5 +1130,10 @@
 
 /mob/living/carbon/human/do_attack_animation(atom/A, visual_effect_icon, obj/item/used_item, no_effect)
 	if(buckled)
+		return
+	return ..()
+
+/mob/living/carbon/human/get_up()
+	if(!do_after(src, 2 SECONDS, IGNORE_LOC_CHANGE|IGNORE_HELD_ITEM, src))
 		return
 	return ..()

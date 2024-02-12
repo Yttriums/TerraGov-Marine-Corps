@@ -42,6 +42,10 @@
 	var/starting_faction_mission_brief = "starting faction mission brief here"
 	///Detailed mission description for the hostile faction
 	var/hostile_faction_mission_brief = "hostile faction mission brief here"
+	///Optional mission parameters for the starting faction. Some are autopopulated
+	var/starting_faction_mission_parameters
+	///Optional mission parameters for the hostile faction. Some are autopopulated
+	var/hostile_faction_mission_parameters
 	///Any additional rewards for the starting faction, for display purposes
 	var/starting_faction_additional_rewards = "starting faction mission rewards here"
 	///Any additional rewards for the hostile faction, for display purposes
@@ -61,6 +65,14 @@
 		MISSION_OUTCOME_DRAW = list(0, 0),
 		MISSION_OUTCOME_MINOR_LOSS = list(0, 0),
 		MISSION_OUTCOME_MAJOR_LOSS = list(0, 0),
+	)
+	///cash rewards for the mission type
+	var/list/cash_rewards = list(
+		MISSION_OUTCOME_MAJOR_VICTORY = list(650, 450),
+		MISSION_OUTCOME_MINOR_VICTORY = list(550, 450),
+		MISSION_OUTCOME_DRAW = list(450, 450),
+		MISSION_OUTCOME_MINOR_LOSS = list(450, 550),
+		MISSION_OUTCOME_MAJOR_LOSS = list(450, 650),
 	)
 	/// Timer used to calculate how long till mission ends
 	var/game_timer
@@ -157,7 +169,7 @@
 /datum/campaign_mission/proc/load_map()
 	mission_z_level = load_new_z_level(map_file, map_name, TRUE, map_traits)
 	set_z_lighting(mission_z_level.z_value, map_light_colours[1], map_light_levels[1], map_light_colours[2], map_light_levels[2], map_light_colours[3], map_light_levels[3], map_light_colours[4], map_light_levels[4])
-
+	mission_state = MISSION_STATE_LOADED
 	SEND_GLOBAL_SIGNAL(COMSIG_GLOB_CAMPAIGN_MISSION_LOADED, mission_z_level.z_value)
 
 ///Generates the mission brief for the mission if it needs to be late loaded
@@ -272,6 +284,15 @@
 	for(var/i in GLOB.quick_loadouts)
 		var/datum/outfit/quick/outfit = GLOB.quick_loadouts[i]
 		outfit.quantity = initial(outfit.quantity)
+	for(var/job in GLOB.campaign_loadout_items_by_role)
+		for(var/datum/loadout_item/loadout_item AS in GLOB.campaign_loadout_items_by_role[job])
+			loadout_item.quantity = initial(loadout_item.quantity)
+	for(var/mob/living/carbon/human/corpse AS in GLOB.dead_human_list) //clean up all the bodies and refund normal roles if required
+		if(corpse.z != mission_z_level.z_value)
+			continue
+		if(!HAS_TRAIT(corpse, TRAIT_UNDEFIBBABLE) && corpse.job.job_cost)
+			corpse.job.add_job_positions(1)
+		qdel(corpse)
 
 ///Unregisters all signals when the mission finishes
 /datum/campaign_mission/proc/unregister_mission_signals()
@@ -317,6 +338,7 @@
 
 	modify_attrition_points(attrition_point_rewards[outcome][1], attrition_point_rewards[outcome][2])
 	apply_victory_points(victory_point_rewards[outcome][1], victory_point_rewards[outcome][2])
+	apply_cash_reward(cash_rewards[outcome][1], cash_rewards[outcome][2])
 
 	//reset attrition points - unused points are lost
 	mode.stat_list[starting_faction].active_attrition_points = 0
@@ -351,6 +373,11 @@
 /datum/campaign_mission/proc/modify_attrition_points(start_team_points, hostile_team_points)
 	mode.stat_list[starting_faction].total_attrition_points += start_team_points
 	mode.stat_list[hostile_faction].total_attrition_points += hostile_team_points
+
+///applies mission cash bonuses to both factions
+/datum/campaign_mission/proc/apply_cash_reward(start_team_cash, hostile_team_cash)
+	mode.stat_list[starting_faction].apply_cash(start_team_cash)
+	mode.stat_list[hostile_faction].apply_cash(hostile_team_cash)
 
 ///checks how many marines and SOM are still alive
 /datum/campaign_mission/proc/count_humans(list/z_levels = SSmapping.levels_by_trait(ZTRAIT_AWAY), count_flags) //todo: make new Z's not away levels, or ensure ground and away is consistant in behavior
@@ -433,7 +460,7 @@
 	GLOB.campaign_structures -= mission_obj
 
 ///spawns mechs for a faction
-/datum/campaign_mission/proc/spawn_mech(mech_faction, heavy_mech, medium_mech, light_mech)
+/datum/campaign_mission/proc/spawn_mech(mech_faction, heavy_mech, medium_mech, light_mech, override_message)
 	if(!mech_faction)
 		return
 	var/total_count = (heavy_mech + medium_mech + light_mech)
@@ -453,4 +480,4 @@
 		GLOB.campaign_structures += new_mech
 		RegisterSignal(new_mech, COMSIG_QDELETING, TYPE_PROC_REF(/datum/campaign_mission, remove_mission_object))
 
-	map_text_broadcast(mech_faction, "[total_count] mechs have been deployed for this mission.", "Mechs available")
+	map_text_broadcast(mech_faction, override_message ? override_message : "[total_count] mechs have been deployed for this mission.", "Mechs available")

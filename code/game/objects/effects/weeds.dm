@@ -185,6 +185,7 @@
 	icon_state = "weedwall"
 
 /obj/alien/weeds/weedwall/update_icon_state()
+	. = ..()
 	var/turf/closed/wall/W = loc
 	if(!istype(W))
 		icon_state = initial(icon_state)
@@ -203,6 +204,7 @@
 	var/window_type = /obj/structure/window/framed
 
 /obj/alien/weeds/weedwall/window/update_icon_state()
+	. = ..()
 	var/obj/structure/window/framed/F = locate() in loc
 	icon_state = F?.smoothing_junction ? "weedwall-[F.smoothing_junction]" : initial(icon_state)
 	if(color_variant == STICKY_COLOR)
@@ -216,11 +218,11 @@
 		return ..()
 	return window.MouseDrop_T(dropping, user)
 
-/obj/alien/weeds/weedwall/window/specialclick(mob/living/carbon/user)
+/obj/alien/weeds/weedwall/window/CtrlClick(mob/living/carbon/user)
 	var/obj/structure/window = locate(window_type) in loc
 	if(!window)
 		return ..()
-	return window.specialclick(user)
+	return window.CtrlClick(user)
 
 /obj/alien/weeds/weedwall/window/attackby(obj/item/I, mob/user, params) //yes, this blocks attacking the weed itself, but if you destroy the frame you destroy the weed!
 	var/obj/structure/window = locate(window_type) in loc
@@ -251,7 +253,7 @@
 	/// What type of weeds this node spreads
 	var/obj/alien/weeds/weed_type = /obj/alien/weeds
 	///The plasma cost multiplier for this node
-	var/plasma_cost_mult = 1
+	var/ability_cost_mult = 1
 
 /obj/alien/weeds/node/Initialize(mapload, obj/alien/weeds/node/node)
 	var/swapped = FALSE
@@ -305,7 +307,7 @@
 	weed_type = /obj/alien/weeds/sticky
 	color_variant = STICKY_COLOR
 	node_icon = "weednodegreen"
-	plasma_cost_mult = 3
+	ability_cost_mult = 3
 
 /obj/alien/weeds/node/sticky/Initialize(mapload, obj/alien/weeds/node/node)
 	. = ..()
@@ -345,4 +347,4 @@
 	color_variant = RESTING_COLOR
 	node_icon = "weednodewhite"
 	resting_buff = RESTING_BUFF
-	plasma_cost_mult = 2
+	ability_cost_mult = 2

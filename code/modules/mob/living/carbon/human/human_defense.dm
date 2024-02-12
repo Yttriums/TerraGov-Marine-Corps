@@ -106,6 +106,19 @@ Contains most of the procs that are called when a mob is attacked by something
 	else
 		target_zone = def_zone ? check_zone(def_zone) : get_zone_with_miss_chance(user.zone_selected, src)
 
+	var/attack_verb = LAZYLEN(I.attack_verb) ? pick(I.attack_verb) : "attacked"
+
+	if(!target_zone)
+		user.do_attack_animation(src)
+		playsound(loc, 'sound/weapons/punchmiss.ogg', 25, TRUE)
+		visible_message(span_danger("[user] tried to hit [src] with [I]!"), null, null, 5)
+		log_combat(user, src, "[attack_verb]", "(missed)")
+		if(!user.mind?.bypass_ff && !mind?.bypass_ff && user.faction == faction)
+			var/turf/T = get_turf(src)
+			log_ffattack("[key_name(user)] missed a attack against [key_name(src)] with [I] in [AREACOORD(T)].")
+			msg_admin_ff("[ADMIN_TPMONTY(user)] missed an against [ADMIN_TPMONTY(src)] with [I] in [ADMIN_VERBOSEJMP(T)].")
+		return FALSE
+
 	var/datum/limb/affecting = get_limb(target_zone)
 	if(affecting.limb_status & LIMB_DESTROYED)
 		to_chat(user, "What [affecting.display_name]?")
@@ -113,7 +126,7 @@ Contains most of the procs that are called when a mob is attacked by something
 		return FALSE
 	var/hit_area = affecting.display_name
 
-	var/damage = I.force + round(I.force * 0.3 * user.skills.getRating(SKILL_MELEE_WEAPONS)) //30% bonus per melee level
+	var/damage = I.force + round(I.force * MELEE_SKILL_DAM_BUFF * user.skills.getRating(SKILL_MELEE_WEAPONS))
 	if(user != src)
 		damage = check_shields(COMBAT_MELEE_ATTACK, damage, "melee")
 		if(!damage)
@@ -122,7 +135,6 @@ Contains most of the procs that are called when a mob is attacked by something
 
 	var/applied_damage = modify_by_armor(damage, MELEE, I.penetration, target_zone)
 	var/percentage_penetration = applied_damage / damage * 100
-	var/attack_verb = LAZYLEN(I.attack_verb) ? pick(I.attack_verb) : "attacked"
 	var/armor_verb
 	switch(percentage_penetration)
 		if(-INFINITY to 0)
@@ -201,8 +213,9 @@ Contains most of the procs that are called when a mob is attacked by something
 	//Melee weapon embedded object code.
 	if(affecting.limb_status & LIMB_DESTROYED)
 		hit_report += "(delimbed [affecting.display_name])"
-	else if(I.damtype == BRUTE && !(I.flags_item & (NODROP|DELONDROP)))
+	else if(I.damtype == BRUTE && !(HAS_TRAIT(I, TRAIT_NODROP) || (I.flags_item & DELONDROP)))
 		if (percentage_penetration && weapon_sharp && prob(I.embedding.embed_chance))
+			user.dropItemToGround(I, TRUE)
 			I.embed_into(src, affecting)
 			hit_report += "(embedded in [affecting.display_name])"
 
@@ -389,7 +402,7 @@ Contains most of the procs that are called when a mob is attacked by something
 		to_chat(user, span_warning("You cannot resolve yourself to destroy [src]'s heart, as [p_they()] can still be saved!"))
 		return
 	to_chat(user, span_notice("You start to remove [src]'s heart, preventing [p_them()] from rising again!"))
-	if(!do_after(user, 2 SECONDS, TRUE, src))
+	if(!do_after(user, 2 SECONDS, NONE, src))
 		return
 	if(!internal_organs_by_name["heart"])
 		to_chat(user, span_notice("The heart is no longer here!"))
@@ -438,7 +451,7 @@ Contains most of the procs that are called when a mob is attacked by something
 		span_notice("You start fixing some of the dents on [src == user ? "your" : "[src]'s"] [affecting.display_name]."))
 
 	add_overlay(GLOB.welding_sparks)
-	while(do_after(user, repair_time, TRUE, src, BUSY_ICON_BUILD) && I.use_tool(src, user, volume = 50, amount = 2))
+	while(do_after(user, repair_time, NONE, src, BUSY_ICON_BUILD) && I.use_tool(src, user, volume = 50, amount = 2))
 		user.visible_message(span_warning("\The [user] patches some dents on [src]'s [affecting.display_name]."), \
 			span_warning("You patch some dents on \the [src]'s [affecting.display_name]."))
 		if(affecting.heal_limb_damage(15, robo_repair = TRUE, updating_health = TRUE))

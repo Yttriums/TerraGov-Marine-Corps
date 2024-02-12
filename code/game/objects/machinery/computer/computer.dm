@@ -103,6 +103,7 @@
 		set_light(initial(light_range))
 
 /obj/machinery/computer/update_icon_state()
+	. = ..()
 	if(machine_stat & (BROKEN|DISABLED))
 		icon_state = "[initial(icon_state)]_broken"
 	else
@@ -144,14 +145,14 @@
 		user.visible_message(span_notice("[user] fumbles around figuring out how to deconstruct [src]."),
 		span_notice("You fumble around figuring out how to deconstruct [src]."))
 		var/fumbling_time = 5 SECONDS * (SKILL_ENGINEER_MASTER - user.skills.getRating(SKILL_ENGINEER))
-		if(!do_after(user, fumbling_time, TRUE, src, BUSY_ICON_UNSKILLED))
+		if(!do_after(user, fumbling_time, NONE, src, BUSY_ICON_UNSKILLED))
 			return
 
 	user.visible_message(span_notice("[user] begins repairing damage to [src]."),
 	span_notice("You begin repairing the damage to [src]."))
 	playsound(loc, 'sound/items/welder2.ogg', 25, 1)
 
-	if(!do_after(user, 5 SECONDS, TRUE, src, BUSY_ICON_BUILD))
+	if(!do_after(user, 5 SECONDS, NONE, src, BUSY_ICON_BUILD))
 		return
 
 	if(!welder.remove_fuel(2, user))
@@ -173,12 +174,12 @@
 			user.visible_message(span_notice("[user] fumbles around figuring out how to deconstruct [src]."),
 			span_notice("You fumble around figuring out how to deconstruct [src]."))
 			var/fumbling_time = 50 * ( SKILL_ENGINEER_MASTER - user.skills.getRating(SKILL_ENGINEER) )
-			if(!do_after(user, fumbling_time, TRUE, src, BUSY_ICON_UNSKILLED))
+			if(!do_after(user, fumbling_time, NONE, src, BUSY_ICON_UNSKILLED))
 				return
 
 		playsound(loc, 'sound/items/screwdriver.ogg', 25, 1)
 
-		if(!do_after(user, 20, TRUE, src, BUSY_ICON_BUILD))
+		if(!do_after(user, 20, NONE, src, BUSY_ICON_BUILD))
 			return
 
 		var/obj/structure/computerframe/A = new(loc)
@@ -217,7 +218,7 @@
 		pick(playsound(src, 'sound/machines/computer_typing1.ogg', 5, 1), playsound(src, 'sound/machines/computer_typing2.ogg', 5, 1), playsound(src, 'sound/machines/computer_typing3.ogg', 5, 1))
 
 ///So Xenos can smash computers out of the way without actually breaking them
-/obj/machinery/computer/attack_alien(mob/living/carbon/xenomorph/X, damage_amount = X.xeno_caste.melee_damage, damage_type = BRUTE, damage_flag = "", effects = TRUE, armor_penetration = 0, isrightclick = FALSE)
+/obj/machinery/computer/attack_alien(mob/living/carbon/xenomorph/X, damage_amount = X.xeno_caste.melee_damage, damage_type = BRUTE, damage_flag = "", effects = TRUE, armor_penetration = X.xeno_caste.melee_ap, isrightclick = FALSE)
 	if(X.status_flags & INCORPOREAL)
 		return FALSE
 

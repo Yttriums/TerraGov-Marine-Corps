@@ -45,6 +45,7 @@
 	return ..()
 
 /obj/structure/orbital_cannon/update_icon_state()
+	. = ..()
 	if(chambered_tray)
 		icon_state = "OBC_chambered"
 		return
@@ -171,6 +172,13 @@
 /// Handles the playing of the Orbital Bombardment incoming sound and other visual and auditory effects of the cannon, usually a spiraling whistle noise but can be overridden.
 /obj/structure/orbital_cannon/proc/handle_ob_firing_effects(target, ob_sound = 'sound/effects/OB_incoming.ogg')
 	flick("OBC_firing",src)
+	for(var/mob/living/current_mob AS in GLOB.mob_living_list)
+		if(!current_mob || !is_mainship_level(current_mob.z))
+			continue
+		if(get_dist(src, current_mob) > 20)
+			current_mob.playsound_local(current_mob, 'sound/effects/obalarm.ogg', 25)
+		shake_camera(current_mob, 0.7 SECONDS)
+		to_chat(current_mob, span_warning("The deck of the [SSmapping.configs[SHIP_MAP].map_name] shudders as her orbital cannon opens fire."))
 	playsound(loc, 'sound/effects/obfire.ogg', 100, FALSE, 20, 4)
 	for(var/mob/M AS in hearers(WARHEAD_FALLING_SOUND_RANGE, target))
 		M.playsound_local(target, ob_sound, falloff = 2)
@@ -200,11 +208,22 @@
 		if("plasma")
 			inaccurate_fuel = abs(GLOB.marine_main_ship?.ob_type_fuel_requirements[4] - tray.fuel_amt)
 
+	// Give marines a warning if misfuelled.
+	var/fuel_warning = "Warhead fuel level: safe."
+	if(inaccurate_fuel > 0)
+		fuel_warning = "Warhead fuel level: incorrect.<br>Warhead may be inaccurate."
+
 	var/turf/target = locate(T.x + inaccurate_fuel * pick(-1,1),T.y + inaccurate_fuel * pick(-1,1),T.z)
 
-	playsound_z_humans(target.z, 'sound/effects/OB_warning_announce.ogg', 100) //for marines on ground
+	priority_announce(
+		message = "Get out of danger close!<br><br>Warhead type: [tray.warhead.warhead_kind].<br>[fuel_warning]<br>Estimated location of impact: [get_area(T)].",
+		title = "Orbital bombardment launch command detected!",
+		type = ANNOUNCEMENT_PRIORITY,
+		sound = 'sound/effects/OB_warning_announce.ogg',
+		channel_override = SSsounds.random_available_channel(), // This way, we can't have it be cut off by other sounds.
+		color_override = "red"
+	)
 	playsound(target, 'sound/effects/OB_warning_announce_novoiceover.ogg', 125, FALSE, 30, 10) //VOX-less version for xenomorphs
-	playsound_z(z, 'sound/effects/OB_warning_announce.ogg', 100) //for the ship
 
 	var/impact_time = 10 SECONDS + (WARHEAD_FLY_TIME * (GLOB.current_orbit/3))
 
@@ -391,7 +410,7 @@
 /obj/structure/ob_ammo/warhead/plasmaloss/warhead_impact(turf/target, inaccuracy_amt = 0)
 	. = ..()
 	var/datum/effect_system/smoke_spread/plasmaloss/smoke = new
-	smoke.set_up(25, target, 3 SECONDS)//Vape nation
+	smoke.set_up(25, target, 30 - (inaccuracy_amt * 2))//Vape nation
 	smoke.start()
 
 /obj/structure/ob_ammo/ob_fuel
@@ -442,7 +461,7 @@
 		user.visible_message(span_notice("[user] fumbles around figuring out how to use the console."),
 		span_notice("You fumble around figuring out how to use the console."))
 		var/fumbling_time = 5 SECONDS * ( SKILL_ENGINEER_ENGI - user.skills.getRating(SKILL_ENGINEER) )
-		if(!do_after(user, fumbling_time, TRUE, src, BUSY_ICON_UNSKILLED))
+		if(!do_after(user, fumbling_time, NONE, src, BUSY_ICON_UNSKILLED))
 			return
 
 	var/dat

@@ -72,7 +72,7 @@ As sniper rifles have both and weapon mods can change them as well. ..() deals w
 	to_chat(user, span_warning("[src] flashes a warning sign indicating unauthorized use!"))
 
 /obj/item/weapon/gun/proc/do_wield(mob/user, wdelay) //*shrugs*
-	if(wield_time > 0 && !do_mob(user, user, wdelay, BUSY_ICON_HOSTILE, null, PROGRESS_CLOCK, IGNORE_LOC_CHANGE, CALLBACK(src, PROC_REF(is_wielded))))
+	if(wield_time > 0 && !do_after(user, wdelay, IGNORE_LOC_CHANGE, user, BUSY_ICON_HOSTILE, null, PROGRESS_CLOCK, CALLBACK(src, PROC_REF(is_wielded))))
 		return FALSE
 	flags_item |= FULLY_WIELDED
 	setup_bullet_accuracy()
@@ -81,7 +81,7 @@ As sniper rifles have both and weapon mods can change them as well. ..() deals w
 /obj/item/weapon/gun/attack_self(mob/user)
 	. = ..()
 	//There are only two ways to interact here.
-	if(!CHECK_BITFIELD(flags_item, TWOHANDED))
+	if(!(flags_item & TWOHANDED))
 		return
 	if(flags_item & WIELDED)
 		unwield(user)//Trying to unwield it
@@ -117,10 +117,10 @@ As sniper rifles have both and weapon mods can change them as well. ..() deals w
 	to_chat(user, span_notice("You start a tactical reload."))
 	var/tac_reload_time = max(0.25 SECONDS, 0.75 SECONDS - user.skills.getRating(SKILL_FIREARMS) * 5)
 	if(length(chamber_items))
-		if(!do_after(user, tac_reload_time, TRUE, new_magazine, ignore_turf_checks = TRUE) && loc == user)
+		if(!do_after(user, tac_reload_time, IGNORE_USER_LOC_CHANGE, new_magazine) && loc == user)
 			return
 		unload(user)
-	if(!do_after(user, tac_reload_time, TRUE, new_magazine, ignore_turf_checks = TRUE) && loc == user)
+	if(!do_after(user, tac_reload_time, IGNORE_USER_LOC_CHANGE, new_magazine) && loc == user)
 		return
 	if(istype(new_magazine.loc, /obj/item/storage))
 		var/obj/item/storage/S = new_magazine.loc
@@ -220,12 +220,9 @@ As sniper rifles have both and weapon mods can change them as well. ..() deals w
 	var/datum/action/item_action/firemode/firemode_action = action
 	if(!istype(firemode_action))
 		if(master_gun)
-			activate(user)
-			return
+			return activate(user)
 		return ..()
-	do_toggle_firemode()
-	user.update_action_buttons()
-
+	return do_toggle_firemode()
 
 /mob/living/carbon/human/verb/toggle_autofire()
 	set category = "Weapons"
@@ -334,11 +331,10 @@ As sniper rifles have both and weapon mods can change them as well. ..() deals w
 
 	if(ishuman(source))
 		to_chat(source, span_notice("[icon2html(src, source)] You switch to <b>[gun_firemode]</b>."))
-		if(source == gun_user)
-			gun_user.update_action_buttons()
 	playsound(src, 'sound/weapons/guns/interact/selector.ogg', 15, 1)
 	SEND_SIGNAL(src, COMSIG_GUN_FIRE_MODE_TOGGLE, gun_firemode)
 	setup_bullet_accuracy()
+	return TRUE
 
 
 /obj/item/weapon/gun/proc/add_firemode(added_firemode, mob/user)
@@ -634,7 +630,7 @@ As sniper rifles have both and weapon mods can change them as well. ..() deals w
 
 /obj/item/weapon/gun/proc/toggle_auto_aim_mode(mob/living/carbon/human/user) //determines whether toggle_aim_mode activates at the end of gun/wield proc
 
-	if((flags_item & WIELDED) || (flags_item & IS_DEPLOYED)) //if gun is wielded it toggles aim mode directly instead
+	if((flags_item & FULLY_WIELDED) || (flags_item & IS_DEPLOYED)) //if gun is wielded it toggles aim mode directly instead
 		toggle_aim_mode(user)
 		return
 
@@ -672,7 +668,7 @@ As sniper rifles have both and weapon mods can change them as well. ..() deals w
 	if(user.do_actions)
 		return
 	if(!user.marksman_aura)
-		if(!do_after(user, aim_time, TRUE, (flags_item & IS_DEPLOYED) ? loc : src, BUSY_ICON_BAR, ignore_turf_checks = (flags_item & IS_DEPLOYED) ? FALSE : TRUE))
+		if(!do_after(user, aim_time, (flags_item & IS_DEPLOYED) ? NONE : IGNORE_USER_LOC_CHANGE, (flags_item & IS_DEPLOYED) ? loc : src, BUSY_ICON_BAR))
 			to_chat(user, span_warning("<b>Your concentration is interrupted!</b>"))
 			return
 	if(!(flags_item & WIELDED) && !(flags_item & IS_DEPLOYED))

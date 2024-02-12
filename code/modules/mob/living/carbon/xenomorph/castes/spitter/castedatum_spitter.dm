@@ -25,10 +25,6 @@
 	evolution_threshold = 225
 	upgrade_threshold = TIER_TWO_THRESHOLD
 
-	evolves_to = list(
-		/mob/living/carbon/xenomorph/boiler,
-		/mob/living/carbon/xenomorph/praetorian,
-	)
 	deevolves_to = list(
 		/mob/living/carbon/xenomorph/sentinel,
 		/mob/living/carbon/xenomorph/baneling,
@@ -56,13 +52,13 @@
 
 	// *** Abilities *** //
 	actions = list(
-		/datum/action/xeno_action/xeno_resting,
-		/datum/action/xeno_action/watch_xeno,
-		/datum/action/xeno_action/activable/psydrain,
-		/datum/action/xeno_action/activable/corrosive_acid,
-		/datum/action/xeno_action/activable/xeno_spit,
-		/datum/action/xeno_action/activable/scatter_spit,
-		/datum/action/xeno_action/activable/spray_acid/line,
+		/datum/action/ability/xeno_action/xeno_resting,
+		/datum/action/ability/xeno_action/watch_xeno,
+		/datum/action/ability/activable/xeno/psydrain,
+		/datum/action/ability/activable/xeno/corrosive_acid,
+		/datum/action/ability/activable/xeno/xeno_spit,
+		/datum/action/ability/activable/xeno/scatter_spit,
+		/datum/action/ability/activable/xeno/spray_acid/line,
 	)
 
 /datum/xeno_caste/spitter/normal

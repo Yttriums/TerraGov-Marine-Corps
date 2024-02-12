@@ -127,7 +127,7 @@
 		holder.icon_state = "hudhealth-100"
 		return
 
-	var/percentage = round(health * 100 / species.total_health)
+	var/percentage = round(health * 100 / maxHealth)
 	switch(percentage)
 		if(100 to INFINITY)
 			holder.icon_state = "hudhealth100"
@@ -259,14 +259,19 @@
 		simple_status_hud.icon_state = ""
 		if(stat != DEAD)
 			status_hud.icon_state = "hudsynth"
+		else if(HAS_TRAIT(src, TRAIT_UNDEFIBBABLE))
+			status_hud.icon_state = "hudsynthdnr"
+			return TRUE
 		else
-			if(!client)
-				var/mob/dead/observer/G = get_ghost(FALSE, TRUE)
+			if(!mind)
+				var/mob/dead/observer/G = get_ghost(TRUE)
 				if(!G)
 					status_hud.icon_state = "hudsynthdnr"
 				else
 					status_hud.icon_state = "hudsynthdead"
-			return
+			else
+				status_hud.icon_state = "hudsynthdead"
+			return TRUE
 		infection_hud.icon_state = "hudsynth" //Xenos can feel synths are not human.
 		return TRUE
 
@@ -303,8 +308,8 @@
 				hud_list[HEART_STATUS_HUD].icon_state = "still_heart"
 				status_hud.icon_state = "huddead"
 				return TRUE
-			if(!client)
-				var/mob/dead/observer/ghost = get_ghost()
+			if(!mind)
+				var/mob/dead/observer/ghost = get_ghost(TRUE)
 				if(!ghost?.can_reenter_corpse)
 					status_hud.icon_state = "huddead"
 					return TRUE
@@ -379,24 +384,22 @@
 		holder.icon_state = "hudhealth-100"
 		return TRUE
 
-	var/perceived_health = health
+	var/perceived_health = health / maxHealth * 100
 	if(!(species.species_flags & NO_PAIN))
 		perceived_health -= PAIN_RATIO_PAIN_HUD * traumatic_shock
 	if(!(species.species_flags & NO_STAMINA) && staminaloss > 0)
 		perceived_health -= STAMINA_RATIO_PAIN_HUD * staminaloss
 
-	switch(perceived_health)
-		if(100 to INFINITY)
-			holder.icon_state = "hudhealth100"
-		if(0 to 100)
-			holder.icon_state = "hudhealth[round(perceived_health, 10)]"
-		if(-50 to 0)
-			holder.icon_state = "hudhealth-0"
-		else
-			holder.icon_state = "hudhealth-50"
+	if(perceived_health >= 100)
+		holder.icon_state = "hudhealth100"
+	else if(perceived_health > 0)
+		holder.icon_state = "hudhealth[round(perceived_health, 10)]"
+	else if(health > (health_threshold_dead * 0.5))
+		holder.icon_state = "hudhealth-0"
+	else
+		holder.icon_state = "hudhealth-50"
 
 	return TRUE
-
 
 //infection status that appears on humans and monkeys, viewed by xenos only.
 /datum/atom_hud/xeno_infection
