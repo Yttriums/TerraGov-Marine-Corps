@@ -35,11 +35,12 @@
 // ***************************************
 // *********** Paroxysm
 // ***************************************
+
 /datum/action/ability/activable/xeno/paroxysm
-	name = "Psychic Crush"
-	action_icon_state = "psy_crush"
-	desc = "Channel an expanding AOE crush effect, activating it again pre-maturely crushes enemies over an area. The longer it is channeled, the larger area it will affect, but will consume more plasma."
-	ability_cost = 40
+	name = "neural_flux"
+	action_icon_state = "neural_flux"
+	desc = " Project a wave which confuses, staggers and slows marines. Channeling the ability increases the size of the wave, but reduces the effects."
+	ability_cost = 200
 	cooldown_duration = 12 SECONDS
 	keybind_flags = ABILITY_KEYBIND_USE_ABILITY
 	target_flags = ABILITY_TURF_TARGET
@@ -61,16 +62,16 @@
 	///max range at which we can cast out ability
 	var/ability_range = 7
 	///Holder for the orb visual effect
-	var/obj/effect/xeno/crush_orb/orb
+	var/obj/effect/xeno/flux_orb/orb
 	/// Used for particles. Holds the particles instead of the mob. See particle_holder for documentation.
 	var/obj/effect/abstract/particle_holder/particle_holder
 	///The particle type this ability uses
 	var/channel_particle = /particles/warlock_charge
 
-/datum/action/ability/activable/xeno/psy_crush/use_ability(atom/target)
+/datum/action/ability/activable/xeno/paroxysm/use_ability(atom/target)
 	if(channel_loop_timer)
 		if(length(target_turfs)) //it shouldn't be possible to do this without any turfs, but just in case
-			crush(target_turfs[1])
+			flux(target_turfs[1])
 		return
 
 	var/mob/living/carbon/xenomorph/xeno_owner = owner
@@ -99,16 +100,16 @@
 	LAZYINITLIST(target_turfs)
 	target_turfs += target_turf
 	LAZYINITLIST(effect_list)
-	effect_list += new /obj/effect/xeno/crush_warning(target_turf)
-	orb = new /obj/effect/xeno/crush_orb(target_turf)
+	effect_list += new /obj/effect/xeno/flux_warning(target_turf)
+	orb = new /obj/effect/xeno/flux_orb(target_turf)
 
-	action_icon_state = "psy_crush_activate"
+	action_icon_state = "paroxysm_activate"
 	update_button_icon()
-	RegisterSignals(owner, list(SIGNAL_ADDTRAIT(TRAIT_FLOORED), SIGNAL_ADDTRAIT(TRAIT_INCAPACITATED)), PROC_REF(stop_crush))
+	RegisterSignals(owner, list(SIGNAL_ADDTRAIT(TRAIT_FLOORED), SIGNAL_ADDTRAIT(TRAIT_INCAPACITATED)), PROC_REF(stop_flux))
 	do_channel(target_turf)
 
 ///Checks if the owner is close enough/can see the target
-/datum/action/ability/activable/xeno/psy_crush/proc/check_distance(atom/target, sight_needed)
+/datum/action/ability/activable/xeno/paroxysm/proc/check_distance(atom/target, sight_needed)
 	if(get_dist(owner, target) > ability_range)
 		owner.balloon_alert(owner, "Too far!")
 		return FALSE
@@ -117,18 +118,17 @@
 		return FALSE
 	return TRUE
 
-///Increases the area of effect, or triggers the crush if we've reached max iterations
-/datum/action/ability/activable/xeno/psy_crush/proc/do_channel(turf/target)
+///Increases the area of effect, or triggers the flux if we've reached max iterations
+/datum/action/ability/activable/xeno/paroxysm/proc/do_channel(turf/target)
 	channel_loop_timer = null
 	var/mob/living/carbon/xenomorph/xeno_owner = owner
 	if(!check_distance(target) || isnull(xeno_owner) || xeno_owner.stat == DEAD)
-		stop_crush()
+		stop_flux()
 		return
 	if(current_iterations >= max_interations)
-		crush(target)
+		flux(target)
 		return
 
-	succeed_activate()
 	playsound(target, 'sound/effects/woosh_swoosh.ogg', 30 + (current_iterations * 10))
 
 	var/list/turfs_to_add = list()
@@ -140,32 +140,29 @@
 			if(LinkBlocked(current_turf, turf_to_check, air_pass = TRUE))
 				continue
 			turfs_to_add += turf_to_check
-			effect_list += new /obj/effect/xeno/crush_warning(turf_to_check)
+			effect_list += new /obj/effect/xeno/flux_warning(turf_to_check)
 	target_turfs += turfs_to_add
 	current_iterations ++
 	if(can_use_action(xeno_owner, ABILITY_IGNORE_COOLDOWN))
 		channel_loop_timer = addtimer(CALLBACK(src, PROC_REF(do_channel), target), 0.6 SECONDS, TIMER_STOPPABLE)
 		return
 
-	stop_crush()
+	stop_flux()
 
-///crushes all turfs in the AOE
-/datum/action/ability/activable/xeno/psy_crush/proc/crush(turf/target)
+///Flux on all turfs in the AOE
+/datum/action/ability/activable/xeno/paroxysm/proc/flux(turf/target)
 	var/mob/living/carbon/xenomorph/xeno_owner = owner
-	var/crush_cost = ability_cost * current_iterations
-	if(crush_cost > xeno_owner.plasma_stored)
-		owner.balloon_alert(owner, "[crush_cost - xeno_owner.plasma_stored] more plasma!")
-		stop_crush()
-		return
+	//Calculate the confusion effect durations by subtracting from max duration based on current_iterations
+	var/confuse_dur = xeno_owner.xeno_caste.flux_max_confuse_dur SECONDS - current_iterations * 0.8 SECONDS
 	if(!check_distance(target))
-		stop_crush()
+		stop_flux()
 		return
 
-	succeed_activate(crush_cost)
+	succeed_activate(ability_cost)
 	playsound(target, 'sound/effects/EMPulse.ogg', 70)
 	apply_filters(target_turfs)
-	orb.icon_state = "crush_hard" //used as a check in stop_crush
-	flick("crush_hard", orb)
+	orb.icon_state = "paroxysm_hard" //used as a check in stop_crush
+	flick("paroxysm_hard",orb)
 	addtimer(CALLBACK(src, PROC_REF(remove_all_filters)), 1 SECONDS, TIMER_STOPPABLE)
 
 	for(var/turf/effected_turf AS in target_turfs)
@@ -174,25 +171,30 @@
 				var/mob/living/carbon/carbon_victim = victim
 				if(isxeno(carbon_victim) || carbon_victim.stat == DEAD)
 					continue
-				carbon_victim.apply_damage(xeno_owner.xeno_caste.crush_strength, BRUTE, blocked = BOMB)
-				carbon_victim.apply_damage(xeno_owner.xeno_caste.crush_strength * 1.5, STAMINA, blocked = BOMB)
-				carbon_victim.adjust_stagger(5 SECONDS)
-				carbon_victim.add_slowdown(6)
-			else if(ismecha(victim))
-				var/obj/vehicle/sealed/mecha/mecha_victim = victim
-				mecha_victim.take_damage(xeno_owner.xeno_caste.crush_strength * 5, BRUTE, BOMB)
-	stop_crush()
+				//apply bonus brain damage. does not affect sleeping/unconcious marines to prevent (simple forms of) abuse
+				if(HAS_TRAIT(carbon_victim, TRAIT_STAGGERED) & carbon_victim.stat == CONSCIOUS)
+					carbon_victim.adjustBrainLoss(xeno_owner.xeno_caste.flux_bonus_brain_damage)
+					carbon_victim.emote("pain")
+					carbon_victim.balloon_alert("Your brain is searing!")
+				//apply gun skill debuff and confusion based on confuse_dur
+				carbon_victim.apply_status_effect(STATUS_EFFECT_GUN_SKILL_SCATTER_DEBUFF, confuse_dur)
+				carbon_victim.apply_status_effect(STATUS_EFFECT_CONFUSED, confuse_dur)
+				//apply flat stagger and slowdown
+				carbon_victim.adjust_stagger(xeno_owner.xeno_caste.flux_stagger_dur)
+				carbon_victim.add_slowdown(xeno_owner.xeno_caste.flux_slowdown_dur)
+
+	stop_flux()
 
 /// stops channeling and unregisters all listeners, resetting the ability
-/datum/action/ability/activable/xeno/psy_crush/proc/stop_crush()
+/datum/action/ability/activable/xeno/neural_flux/proc/stop_flux()
 	SIGNAL_HANDLER
 	var/mob/living/carbon/xenomorph/xeno_owner = owner
 	if(channel_loop_timer)
 		deltimer(channel_loop_timer)
 		channel_loop_timer = null
 	QDEL_LIST(effect_list)
-	if(orb.icon_state != "crush_hard") //we failed to crush
-		flick("crush_smooth", orb)
+	if(orb.icon_state != "flux_orb_hard") //we failed to cast
+		flick("flux_orb_smooth", orb)
 		QDEL_NULL_IN(src, orb, 0.5 SECONDS)
 	else
 		QDEL_NULL_IN(src, orb, 0.4 SECONDS)
@@ -200,7 +202,7 @@
 	target_turfs = null
 	effect_list = null
 	owner.remove_movespeed_modifier(MOVESPEED_ID_WARLOCK_CHANNELING)
-	action_icon_state = "psy_crush"
+	action_icon_state = "neural_flux"
 	xeno_owner.update_glow()
 	add_cooldown()
 	update_button_icon()
@@ -208,7 +210,7 @@
 	UnregisterSignal(owner, list(SIGNAL_ADDTRAIT(TRAIT_FLOORED), SIGNAL_ADDTRAIT(TRAIT_INCAPACITATED)))
 
 ///Apply a filter on all items in the list of turfs
-/datum/action/ability/activable/xeno/psy_crush/proc/apply_filters(list/turfs)
+/datum/action/ability/activable/xeno/neural_flux/proc/apply_filters(list/turfs)
 	LAZYINITLIST(filters_applied)
 	for(var/turf/targeted AS in turfs)
 		targeted.add_filter("crushblur", 1, radial_blur_filter(0.3))
@@ -217,50 +219,52 @@
 			item.add_filter("crushblur", 1, radial_blur_filter(0.3))
 			filters_applied += item
 	GLOB.round_statistics.psy_crushes++
-	SSblackbox.record_feedback("tally", "round_statistics", 1, "psy_crushes")
+	SSblackbox.record_feedback("tally", "round_statistics", 1, "neural_fluxes")
 
 ///Remove all filters of items in filters_applied
-/datum/action/ability/activable/xeno/psy_crush/proc/remove_all_filters()
+/datum/action/ability/activable/xeno/neural_flux/proc/remove_all_filters()
 	for(var/atom/thing AS in filters_applied)
 		if(QDELETED(thing))
 			continue
 		thing.remove_filter("crushblur")
 	filters_applied = null
 
-/datum/action/ability/activable/xeno/psy_crush/on_cooldown_finish()
-	owner.balloon_alert(owner, "Crush ready")
+/datum/action/ability/activable/xeno/neural_flux/on_cooldown_finish()
+	owner.balloon_alert(owner, "Flux ready")
 	return ..()
 
-/obj/effect/xeno/crush_warning
+/obj/effect/xeno/flux_warning
 	icon = 'icons/xeno/Effects.dmi'
-	icon_state = "crush_warning"
+	icon_state = "generic_warning"
 	anchored = TRUE
 	resistance_flags = RESIST_ALL
 	layer = ABOVE_ALL_MOB_LAYER
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+	color = COLOR_DARK_RED
 	/// Used for particles. Holds the particles instead of the mob. See particle_holder for documentation.
 	var/obj/effect/abstract/particle_holder/particle_holder
 	///The particle type this ability uses
-	var/channel_particle = /particles/crush_warning
+	var/channel_particle = /particles/flux_warning
 
-/obj/effect/xeno/crush_warning/Initialize(mapload)
+/obj/effect/xeno/flux_warning/Initialize(mapload)
 	. = ..()
 	particle_holder = new(src, channel_particle)
 	particle_holder.pixel_y = 0
 
-/obj/effect/xeno/crush_orb
+/obj/effect/xeno/flux_orb
 	icon = 'icons/xeno/2x2building.dmi'
-	icon_state = "orb_idle"
+	icon_state = "flux_orb_idle"
 	anchored = TRUE
 	resistance_flags = RESIST_ALL
 	layer = FLY_LAYER
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+	alpha = 200
 	pixel_x = -16
+	pixel_y = 24
 
-/obj/effect/xeno/crush_orb/Initialize(mapload)
+/obj/effect/xeno/flux_orb/Initialize(mapload)
 	. = ..()
-	flick("orb_charge", src)
-
+	flick("flux_orb_appear", src)
 
 // ***************************************
 // *********** Forward Charge

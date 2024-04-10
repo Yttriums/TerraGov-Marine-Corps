@@ -1,7 +1,7 @@
 /mob/living/carbon/xenomorph/warden
 	caste_base_type = /mob/living/carbon/xenomorph/warden
 	name = "Warden"
-	desc = "A xenomorph with an elongated, armored head. Psychic energy crackles in the air around it."
+	desc = "A bulky xenomorph with an elongated, armored head. Psychic energy crackles in the air around it."
 	icon = 'icons/Xeno/castes/warden.dmi'
 	icon_state = "Warden Walking"
 	bubble_icon = "alienroyal"
