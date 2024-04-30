@@ -3,7 +3,7 @@
 	display_name = "Oppressor"
 	upgrade_name = ""
 	caste_desc = "Psychic guardians of the hive. Disrupt and displace tallhosts with mental attacks while shielding sisters from harm"
-	caste_type_path = /mob/living/carbon/xenomorph/oppresor
+	caste_type_path = /mob/living/carbon/xenomorph/oppressor
 
 	tier = XENO_TIER_TWO
 	upgrade = XENO_UPGRADE_BASETYPE
@@ -21,10 +21,10 @@
 	caste_traits = null
 	//todo
 	soft_armor = list(MELEE = 40, BULLET = 40, LASER = 40, ENERGY = 40, BOMB = 10, BIO = 35, FIRE = 35, ACID = 35)
-	shield_strength = 650
-	crush_strength = 50
-	blast_strength = 45
-	minimap_icon = "warlock"
+	paroxysm_max_duration_confuse = 5
+	paroxysm_max_duration_scatter = 7
+	psychic_fortress_num_reflected_proj = 3
+	minimap_icon = "oppressor"
 	actions = list(
 		/datum/action/ability/xeno_action/xeno_resting,
 		/datum/action/ability/xeno_action/watch_xeno,
@@ -32,7 +32,7 @@
 		/datum/action/ability/xeno_action/psychic_whisper,
 	)
 
-/datum/xeno_caste/warlock/normal
+/datum/xeno_caste/oppressor/normal
 	upgrade = XENO_UPGRADE_NORMAL
 
 /datum/xeno_caste/oppressor/primordial

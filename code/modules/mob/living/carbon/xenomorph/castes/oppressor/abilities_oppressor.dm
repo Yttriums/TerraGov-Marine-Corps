@@ -37,9 +37,9 @@
 // ***************************************
 
 /datum/action/ability/activable/xeno/paroxysm
-	name = "neural_flux"
-	action_icon_state = "neural_flux"
-	desc = " Project a wave which confuses, staggers and slows marines. Channeling the ability increases the size of the wave, but reduces the effects."
+	name = "paroxysm"
+	action_icon_state = "paroxysm"
+	desc = " Project a wave which confuses marines and disrupts their aim. Channeling the ability increases the size of the wave, but reduces the duration of the effects."
 	ability_cost = 200
 	cooldown_duration = 12 SECONDS
 	keybind_flags = ABILITY_KEYBIND_USE_ABILITY
@@ -48,7 +48,7 @@
 		KEYBINDING_NORMAL = COMSIG_XENOABILITY_PSYCHIC_CRUSH,
 	)
 	///The number of times we can expand our effect radius. Effectively a max radius
-	var/max_interations = 5
+	var/max_iterations = 4
 	///How many times we have expanded our effect radius
 	var/current_iterations = 0
 	///timer hash for the timer we use when charging up
@@ -125,7 +125,7 @@
 	if(!check_distance(target) || isnull(xeno_owner) || xeno_owner.stat == DEAD)
 		stop_flux()
 		return
-	if(current_iterations >= max_interations)
+	if(current_iterations >= max_iterations)
 		flux(target)
 		return
 
@@ -186,7 +186,7 @@
 	stop_flux()
 
 /// stops channeling and unregisters all listeners, resetting the ability
-/datum/action/ability/activable/xeno/neural_flux/proc/stop_flux()
+/datum/action/ability/activable/xeno/paroxysm/proc/stop_flux()
 	SIGNAL_HANDLER
 	var/mob/living/carbon/xenomorph/xeno_owner = owner
 	if(channel_loop_timer)
@@ -202,7 +202,7 @@
 	target_turfs = null
 	effect_list = null
 	owner.remove_movespeed_modifier(MOVESPEED_ID_WARLOCK_CHANNELING)
-	action_icon_state = "neural_flux"
+	action_icon_state = "paroxysm"
 	xeno_owner.update_glow()
 	add_cooldown()
 	update_button_icon()
@@ -210,7 +210,7 @@
 	UnregisterSignal(owner, list(SIGNAL_ADDTRAIT(TRAIT_FLOORED), SIGNAL_ADDTRAIT(TRAIT_INCAPACITATED)))
 
 ///Apply a filter on all items in the list of turfs
-/datum/action/ability/activable/xeno/neural_flux/proc/apply_filters(list/turfs)
+/datum/action/ability/activable/xeno/paroxysm/proc/apply_filters(list/turfs)
 	LAZYINITLIST(filters_applied)
 	for(var/turf/targeted AS in turfs)
 		targeted.add_filter("crushblur", 1, radial_blur_filter(0.3))
@@ -218,18 +218,17 @@
 		for(var/atom/movable/item AS in targeted.contents)
 			item.add_filter("crushblur", 1, radial_blur_filter(0.3))
 			filters_applied += item
-	GLOB.round_statistics.psy_crushes++
-	SSblackbox.record_feedback("tally", "round_statistics", 1, "neural_fluxes")
+
 
 ///Remove all filters of items in filters_applied
-/datum/action/ability/activable/xeno/neural_flux/proc/remove_all_filters()
+/datum/action/ability/activable/xeno/paroxysm/proc/remove_all_filters()
 	for(var/atom/thing AS in filters_applied)
 		if(QDELETED(thing))
 			continue
 		thing.remove_filter("crushblur")
 	filters_applied = null
 
-/datum/action/ability/activable/xeno/neural_flux/on_cooldown_finish()
+/datum/action/ability/activable/xeno/paroxysm/on_cooldown_finish()
 	owner.balloon_alert(owner, "Flux ready")
 	return ..()
 
@@ -267,12 +266,12 @@
 	flick("flux_orb_appear", src)
 
 // ***************************************
-// *********** Forward Charge
+// *********** Psychic Assault
 // ***************************************
 /datum/action/ability/activable/xeno/forward_charge
 	name = "Forward Charge"
 	action_icon_state = "pounce"
-	desc = "Charge up to 4 tiles and knockdown any targets in our way."
+	desc = "Charge up to 5 tiles and knockdown any targets in our way. Strikes fear in nearby marines"
 	cooldown_duration = 10 SECONDS
 	ability_cost = 80
 	use_state_flags = ABILITY_USE_CRESTED|ABILITY_USE_FORTIFIED
@@ -361,3 +360,93 @@
 ///Decrease the do_actions of the owner
 /datum/action/ability/activable/xeno/forward_charge/proc/decrease_do_action(atom/target)
 	LAZYDECREMENT(owner.do_actions, target)
+
+// ***************************************
+// *********** Fortify
+// ***************************************
+/datum/action/ability/xeno_action/fortify
+	name = "Fortify"
+	action_icon_state = "fortify"	// TODO
+	desc = "Plant yourself for a large defensive boost."
+	use_state_flags = ABILITY_USE_FORTIFIED|ABILITY_USE_CRESTED // duh
+	cooldown_duration = 1 SECONDS
+	keybinding_signals = list(
+		KEYBINDING_NORMAL = COMSIG_XENOABILITY_FORTIFY,
+	)
+	var/last_fortify_bonus = 0
+
+/datum/action/ability/xeno_action/fortify/give_action()
+	. = ..()
+	var/mob/living/carbon/xenomorph/defender/X = owner
+	last_fortify_bonus = X.xeno_caste.fortify_armor
+
+/datum/action/ability/xeno_action/fortify/on_xeno_upgrade()
+	var/mob/living/carbon/xenomorph/X = owner
+	if(X.fortify)
+		X.soft_armor = X.soft_armor.modifyAllRatings(-last_fortify_bonus)
+		X.soft_armor = X.soft_armor.modifyRating(BOMB = -last_fortify_bonus)
+
+		last_fortify_bonus = X.xeno_caste.fortify_armor
+
+		X.soft_armor = X.soft_armor.modifyAllRatings(last_fortify_bonus)
+		X.soft_armor = X.soft_armor.modifyRating(BOMB = last_fortify_bonus)
+	else
+		last_fortify_bonus = X.xeno_caste.fortify_armor
+
+/datum/action/ability/xeno_action/fortify/on_cooldown_finish()
+	var/mob/living/carbon/xenomorph/X = owner
+	to_chat(X, span_notice("We can [X.fortify ? "stand up" : "fortify"] again."))
+	return ..()
+
+/datum/action/ability/xeno_action/fortify/action_activate()
+	var/mob/living/carbon/xenomorph/defender/X = owner
+
+	if(X.fortify)
+		set_fortify(FALSE)
+		add_cooldown()
+		return succeed_activate()
+
+	var/was_crested = X.crest_defense
+	if(X.crest_defense)
+		var/datum/action/ability/xeno_action/toggle_crest_defense/CD = X.actions_by_path[/datum/action/ability/xeno_action/toggle_crest_defense]
+		if(CD.cooldown_timer)
+			to_chat(X, span_xenowarning("We cannot yet transition to a defensive stance!"))
+			return fail_activate()
+		CD.set_crest_defense(FALSE, TRUE)
+		CD.add_cooldown()
+		to_chat(X, span_xenowarning("We tuck our lowered crest into ourselves."))
+
+	var/datum/action/ability/activable/xeno/charge/forward_charge/combo_cooldown = X.actions_by_path[/datum/action/ability/activable/xeno/charge/forward_charge]
+	combo_cooldown.add_cooldown(cooldown_duration)
+
+	set_fortify(TRUE, was_crested)
+	add_cooldown()
+	return succeed_activate()
+
+/datum/action/ability/xeno_action/fortify/proc/set_fortify(on, silent = FALSE)
+	var/mob/living/carbon/xenomorph/defender/X = owner
+	GLOB.round_statistics.defender_fortifiy_toggles++
+	SSblackbox.record_feedback("tally", "round_statistics", 1, "defender_fortifiy_toggles")
+	if(on)
+		ADD_TRAIT(X, TRAIT_IMMOBILE, FORTIFY_TRAIT)
+		ADD_TRAIT(X, TRAIT_STOPS_TANK_COLLISION, FORTIFY_TRAIT)
+		if(!silent)
+			to_chat(X, span_xenowarning("We tuck ourselves into a defensive stance."))
+		X.soft_armor = X.soft_armor.modifyAllRatings(last_fortify_bonus)
+		X.soft_armor = X.soft_armor.modifyRating(BOMB = last_fortify_bonus) //double bomb bonus for explosion immunity
+	else
+		if(!silent)
+			to_chat(X, span_xenowarning("We resume our normal stance."))
+		X.soft_armor = X.soft_armor.modifyAllRatings(-last_fortify_bonus)
+		X.soft_armor = X.soft_armor.modifyRating(BOMB = -last_fortify_bonus)
+		REMOVE_TRAIT(X, TRAIT_IMMOBILE, FORTIFY_TRAIT)
+		REMOVE_TRAIT(X, TRAIT_STOPS_TANK_COLLISION, FORTIFY_TRAIT)
+
+	X.fortify = on
+	X.anchored = on
+	playsound(X.loc, 'sound/effects/stonedoor_openclose.ogg', 30, TRUE)
+	X.update_icons()
+
+// ***************************************
+// *********** Psychic Fortress
+// ***************************************
